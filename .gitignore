@@ -1,0 +1,10 @@
+venv
+images
+db_save
+.idea
+run.sh
+*.json
+database_feed.py
+run.sh
+last_sent
+__pycache__
