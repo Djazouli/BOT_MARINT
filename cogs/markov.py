@@ -74,12 +74,14 @@ class Markov(commands.Cog):
     @commands.command("Ladder")
     async def ladder(self, ctx):
         ranking_db = get_ranking_db()
-        ranking = sorted(ranking_db.all(), key=lambda x: x["won"]/x["played"])
+        ranking = sorted(ranking_db.all(), key=lambda x: x["won"]/x["played"] if x["played"] else 0)
         message = ""
         for rank in ranking:
-            _message = f"{rank['name']} | {rank['best_streak']} | {(rank['won']*100)//rank['played']}%"
+            winrate = (rank['won']*100)//rank['played'] if rank["played"] else 0
+            _message = f"{rank['name']} | {rank['best_streak']} | {winrate}"
             message += _message + "\n"
-        await ctx.send(message)
+        if message:
+            await ctx.send(message)
 
 def setup(bot):
     bot.add_cog(Markov(bot))
