@@ -45,10 +45,12 @@ class Markov(commands.Cog):
         if self.bot.custom_users.get(ctx.author).current_guess is not None:
             await ctx.send("Game already in progress...")
             return
+        embed = discord.Embed(color=0x670097)
         current_guessing = choice(list(self.bot.markov_chains.keys()))
         sentence, name = self.get_line(current_guessing)
         print(name)
-        await ctx.send(f"Guess who could have said:\n*{sentence}*")
+        embed.add_field(name="Guess who could have said", value=f"*{sentence}*")
+        await ctx.send(embed=embed)
         self.bot.custom_users.get(ctx.author).current_guess = name
 
     @commands.command("Users")
@@ -59,15 +61,19 @@ class Markov(commands.Cog):
         user = self.bot.custom_users.get(ctx.author)
         if user.current_guess is None:
             return
+        embed = discord.Embed()
         if name == user.current_guess:
-            message = f"Congratulations! You guessed {name}!"
+            embed.add_field(name="Congratulations!", value=f"You guessed {name}!", inline=False)
+            embed.colour = 0x00d300
             user.set_current_streak(user.current_streak + 1)
             user.increment_won()
         else:
-            message = f"You lost! It was {user.current_guess}!"
+            embed.add_field(name="You lost!", value=f"It was {user.current_guess}!", inline=False)
+            embed.colour = 0xe30000
             user.set_current_streak(0)
         user.increment_played()
-        await ctx.send(f"{message}\nCurrent streak is {user.current_streak}")
+        embed.add_field(name="Current streak", value=str(user.current_streak), inline=False)
+        await ctx.send(embed=embed)
         user.current_guess = None
         return
 
@@ -75,13 +81,13 @@ class Markov(commands.Cog):
     async def ladder(self, ctx):
         ranking_db = get_ranking_db()
         ranking = sorted(ranking_db.all(), key=lambda x: x["won"]/x["played"] if x["played"] else 0)
-        message = ""
+        if not ranking:
+            return
+        embed = discord.Embed(title="Ladder", description="Ranking: current streak, winrate", color=0x00b4d4)
         for rank in ranking:
             winrate = (rank['won']*100)//rank['played'] if rank["played"] else 0
-            _message = f"{rank['name']} | {rank['best_streak']} | {winrate}"
-            message += _message + "\n"
-        if message:
-            await ctx.send(message)
+            embed.add_field(name=rank['name'], value=f"{rank['best_streak']} | {winrate}", inline=False)
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Markov(bot))
