@@ -38,7 +38,7 @@ class User():
         ranking_db = get_ranking_db()
         user = ranking_db.get(doc_id=self.db_id)
         played = user.get("played", 0)
-        ranking_db.update({"played": played+1}, doc_ids=[self.db_id])
+        ranking_db.update({"played": played + 1}, doc_ids=[self.db_id])
         return played + 1
 
     def increment_won(self) -> int:
