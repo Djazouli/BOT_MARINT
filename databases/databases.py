@@ -1,9 +1,10 @@
 from tinydb import TinyDB
-import os#
+import os
 import pickle
 
 db_messages = TinyDB(os.path.join("databases", "db_message.json"))
 db_quotes = TinyDB(os.path.join("databases", "quotes.json"))
+db_ranking = TinyDB(os.path.join("databases", "ranking.json"))
 markov_path = os.path.join("databases", "markov.pk")
 
 def get_quotes_db():
@@ -11,6 +12,13 @@ def get_quotes_db():
 
 def get_messages_db():
     return db_messages
+
+def get_ranking_db():
+    """
+    Ranking db is a list of item: {id, name, current_streak, best_streak, played, won}
+    :return:
+    """
+    return db_ranking
 
 def load_markov_chains():
     try:

@@ -3,6 +3,7 @@ import re
 from tinydb import TinyDB, Query
 from databases.databases import save_markov_chains, load_markov_chains
 
+# https://github.com/tommeagher/heroku_ebooks + some custom modifications
 class MarkovChainer(object):
     def __init__(self, order):
         self.order = order
@@ -92,6 +93,9 @@ def filter_status(text):
     text = re.sub(r'\xe9', 'e', text)  # take out accented e
     text = re.sub(r'[<>]', '', text)
     return text
+
+
+## me
 
 def feed_marchov_chains(markov_chain):
     db = TinyDB("db_message.json")

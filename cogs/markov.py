@@ -5,7 +5,7 @@ from pathlib import Path
 import discord
 from discord.ext import commands
 from tinydb import Query
-from databases.databases import get_quotes_db
+from databases.databases import get_ranking_db
 
 
 
@@ -42,30 +42,44 @@ class Markov(commands.Cog):
 
     @commands.command("Guess")
     async def guess(self, ctx):
-        if self.bot.current_guess is not None:
+        if self.bot.custom_users.get(ctx.author).current_guess is not None:
             await ctx.send("Game already in progress...")
             return
         current_guessing = choice(list(self.bot.markov_chains.keys()))
         sentence, name = self.get_line(current_guessing)
+        print(name)
         await ctx.send(f"Guess who could have said:\n*{sentence}*")
-        self.bot.current_guess = name
+        self.bot.custom_users.get(ctx.author).current_guess = name
 
     @commands.command("Users")
     async def get_guess_list(self, ctx):
         await ctx.send(' - ' + '\n - '.join(self.bot.markov_chains.keys()))
 
     async def try_guess(self, name: str, ctx):
-        if self.bot.current_guess is None:
+        user = self.bot.custom_users.get(ctx.author)
+        if user.current_guess is None:
             return
-        if name == self.bot.current_guess:
+        if name == user.current_guess:
             message = f"Congratulations! You guessed {name}!"
-            self.bot.current_streak += 1
+            user.set_current_streak(user.current_streak + 1)
+            user.increment_won()
         else:
-            message = f"You lost! It was {self.bot.current_guess}!"
-            self.bot.current_streak = 0
-        await ctx.send(f"{message}\nCurrent streak is {self.bot.current_streak}")
-        self.bot.current_guess = None
+            message = f"You lost! It was {user.current_guess}!"
+            user.set_current_streak(0)
+        user.increment_played()
+        await ctx.send(f"{message}\nCurrent streak is {user.current_streak}")
+        user.current_guess = None
         return
+
+    @commands.command("Ladder")
+    async def ladder(self, ctx):
+        ranking_db = get_ranking_db()
+        ranking = sorted(ranking_db.all(), key=lambda x: x["won"]/x["played"])
+        message = ""
+        for rank in ranking:
+            _message = f"{rank['name']} | {rank['best_streak']} | {(rank['won']*100)//rank['played']}%"
+            message += _message + "\n"
+        await ctx.send(message)
 
 def setup(bot):
     bot.add_cog(Markov(bot))

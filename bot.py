@@ -5,8 +5,7 @@ import sys
 from discord.ext import commands
 from discord.ext.commands import context
 from markov import generate_markov_chains
-
-
+from utils.user import User
 db = TinyDB("db.json")
 
 extensions = (
@@ -34,6 +33,8 @@ class MarkovBot(commands.Bot):
         for extension in extensions:
             self.load_extension(extension)
 
+        self.custom_users = {}
+
 
 
     def run(self):
@@ -50,6 +51,8 @@ class MarkovBot(commands.Bot):
             if not ctx.message.clean_content in self.all_commands:
                 return
             ctx.command = self.all_commands[ctx.message.clean_content]
+        if ctx.author not in self.custom_users:
+            self.custom_users[ctx.author] = User(ctx.author)
         await self.invoke(ctx)
 
     async def on_message(self, message):
