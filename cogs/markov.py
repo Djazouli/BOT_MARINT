@@ -37,7 +37,7 @@ class Markov(commands.Cog):
         markov_chain = self.bot.markov_chains.get(name)
         sentence = markov_chain.generate_sentence()
         if len(sentence.split()) < 5:
-            sentence += f". {markov_chain.generate_sentence()}"
+            sentence += f"\n{markov_chain.generate_sentence()}"
         return sentence, name
 
     @commands.command("Guess")
@@ -80,13 +80,13 @@ class Markov(commands.Cog):
     @commands.command("Ladder")
     async def ladder(self, ctx):
         ranking_db = get_ranking_db()
-        ranking = sorted(ranking_db.all(), key=lambda x: x["won"]/x["played"] if x["played"] else 0)
+        ranking = sorted(ranking_db.all(), key=lambda x: x["won"]/x["played"] if x["played"] else 0, reverse=True)
         if not ranking:
             return
-        embed = discord.Embed(title="Ladder", description="Ranking: current streak, winrate", color=0x00b4d4)
+        embed = discord.Embed(title="Ladder", description="Ranking: best streak, winrate, played", color=0x00b4d4)
         for rank in ranking:
             winrate = (rank['won']*100)//rank['played'] if rank["played"] else 0
-            embed.add_field(name=rank['name'], value=f"{rank['best_streak']} | {winrate}", inline=False)
+            embed.add_field(name=rank['name'], value=f"{rank['best_streak']} | {winrate}% | {rank['played']}", inline=False)
         await ctx.send(embed=embed)
 
 def setup(bot):
