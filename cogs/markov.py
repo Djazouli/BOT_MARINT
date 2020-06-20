@@ -44,21 +44,28 @@ class Markov(commands.Cog):
     async def guess(self, ctx):
         if self.bot.custom_users.get(ctx.author).current_guess is not None:
             await ctx.send("Game already in progress...")
-            return
+        else:
+            current_guessing = choice(list(self.bot.markov_chains.keys()))
+            sentence, name = self.get_line(current_guessing)
+            self.bot.custom_users.get(ctx.author).current_guess = name
+            self.bot.custom_users.get(ctx.author).current_sentence = sentence
+
+        sentence = self.bot.custom_users.get(ctx.author).current_sentence
+        name = self.bot.custom_users.get(ctx.author).current_guess
         embed = discord.Embed(color=0x670097)
-        current_guessing = choice(list(self.bot.markov_chains.keys()))
-        sentence, name = self.get_line(current_guessing)
         print(name)
         embed.add_field(name="Guess who could have said", value=f"*{sentence}*")
         await ctx.send(embed=embed)
-        self.bot.custom_users.get(ctx.author).current_guess = name
 
     @commands.command("Users")
     async def get_guess_list(self, ctx):
-        await ctx.send(' - ' + '\n - '.join(self.bot.markov_chains.keys()))
+        await ctx.send(' - ' + '\n- '.join(self.bot.markov_chains.keys()))
 
     async def try_guess(self, name: str, ctx):
         user = self.bot.custom_users.get(ctx.author)
+        if name != ctx.message.content.strip():
+            # Avoid false positive
+            return
         if user.current_guess is None:
             return
         embed = discord.Embed()

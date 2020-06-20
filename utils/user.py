@@ -25,6 +25,7 @@ class User():
         self.current_streak = user.get("current_streak")
         self.best_streak = user.get("best_streak")
         self.current_guess = None
+        self.current_sentence = None
 
     def set_current_streak(self, n):
         self.current_streak = n
