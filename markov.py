@@ -84,13 +84,10 @@ class MarkovChainer(object):
 
 
 def filter_status(text):
-    text = re.sub(r'\b(RT|MT) .+', '', text)  # take out anything after RT or MT
     text = re.sub(r'(\#|@|(h\/t)|(http))\S+', '', text)  # Take out URLs, hashtags, hts, etc.
     text = re.sub('\s+', ' ', text)  # collaspse consecutive whitespace to single spaces.
     text = re.sub(r'\"|\(|\)', '', text)  # take out quotes.
-    text = re.sub(r'\s+\(?(via|says)\s@\w+\)?', '', text)  # remove attribution
     text = re.sub(r'<[^>]*>','', text) #strip out html tags from mastodon posts
-    text = re.sub(r'\xe9', 'e', text)  # take out accented e
     text = re.sub(r'[<>]', '', text)
     return text
 
@@ -115,7 +112,7 @@ def generate_markov_chains():
     markov_chains = load_markov_chains()
     if markov_chains is not None:
         return markov_chains
-    markov_chains = {} #user_name: markov_chain
+    markov_chains = {} #user_name: markov_chains
     id_matching = {}
     data_per_user = {} #user_id: list of string (messages)
     db = TinyDB("databases/db_message.json")

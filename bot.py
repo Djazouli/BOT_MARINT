@@ -48,12 +48,19 @@ class MarkovBot(commands.Bot):
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=context.Context)
         if ctx.command is None:
-            if not ctx.message.clean_content in self.all_commands:
-                return
-            ctx.command = self.all_commands[ctx.message.clean_content]
+            ctx.command = self.try_get_commands(ctx.message.clean_content)
+        if ctx.command is None:
+            return
         if ctx.author not in self.custom_users:
             self.custom_users[ctx.author] = User(ctx.author)
         await self.invoke(ctx)
+
+    def try_get_commands(self, content):
+        content = content.casefold()
+        for command_name in self.all_commands:
+            if command_name.casefold() == content:
+                return self.all_commands[command_name]
+        return None
 
     async def on_message(self, message):
         if message.author.bot or message.channel.id not in self.authorized_channels:

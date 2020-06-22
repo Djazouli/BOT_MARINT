@@ -19,12 +19,19 @@ class Markov(commands.Cog):
         for name in self.bot.markov_chains.keys():
             self.bot.add_command(commands.Command(self.get_name_guess_func(name), name=name))
             self.bot.add_command(commands.Command(self.get_line_func(name), name=f"Line {name}",))
+        self.bot.add_command(commands.Command(self.get_skip(), name="Je passe"))
 
     def get_line_func(self, name):
         async def _get_line(ctx):
             sentence, _name = self.get_line(name)
             await ctx.send(f"> {sentence}\n{_name}")
         return _get_line
+
+    def get_skip(self):
+        async def _skip(ctx):
+            await self.skip(ctx)
+            return
+        return _skip
 
     def get_name_guess_func(self, name):
         async def _name_guess(ctx):
@@ -63,7 +70,7 @@ class Markov(commands.Cog):
 
     async def try_guess(self, name: str, ctx):
         user = self.bot.custom_users.get(ctx.author)
-        if name != ctx.message.content.strip():
+        if name.casefold() != ctx.message.content.strip().casefold():
             # Avoid false positive
             return
         if user.current_guess is None:
@@ -82,6 +89,7 @@ class Markov(commands.Cog):
         embed.add_field(name="Current streak", value=str(user.current_streak), inline=False)
         await ctx.send(embed=embed)
         user.current_guess = None
+        user.current_sentence = None
         return
 
     @commands.command("Ladder")
@@ -95,6 +103,25 @@ class Markov(commands.Cog):
             winrate = (rank['won']*100)//rank['played'] if rank["played"] else 0
             embed.add_field(name=rank['name'], value=f"{rank['best_streak']} | {winrate}% | {rank['played']}", inline=False)
         await ctx.send(embed=embed)
+
+    @commands.command("Skip")
+    async def skip(self, ctx):
+        user = self.bot.custom_users.get(ctx.author)
+        if user.current_guess is None:
+            return
+        embed = discord.Embed()
+        embed.add_field(name="You lost!", value=f"It was {user.current_guess}!", inline=False)
+        embed.colour = 0xe30000
+        user.set_current_streak(0)
+        user.increment_played()
+        embed.add_field(name="Current streak", value=str(user.current_streak), inline=False)
+        await ctx.send(embed=embed)
+        user.current_guess = None
+        user.current_sentence = None
+
+
+
+
 
 def setup(bot):
     bot.add_cog(Markov(bot))
