@@ -1,7 +1,7 @@
 from random import choice
 from time import time
 from pathlib import Path
-
+from math import sqrt
 import discord
 from discord.ext import commands
 from tinydb import Query
@@ -94,14 +94,24 @@ class Markov(commands.Cog):
 
     @commands.command("Ladder")
     async def ladder(self, ctx):
-        ranking_db = get_ranking_db()
-        ranking = sorted(ranking_db.all(), key=lambda x: x["won"]/x["played"] if x["played"] else 0, reverse=True)
+        rankings = get_ranking_db().all()
+        for ranking in rankings:
+            n = ranking["played"]
+            if not n:
+                res = 0
+            else:
+                phat = ranking["won"] / n
+                z = 1.95996398454005423552
+                res = phat + (z ** 2) / (2 * n) - z * sqrt((phat * (1 - phat) + z ** 2 / (4 * n)) / n)
+                res /= 1 + z ** 2 / n
+            ranking["wilson"] = res
+        ranking = sorted(rankings, key=lambda x: x["wilson"], reverse=True)
         if not ranking:
             return
-        embed = discord.Embed(title="Ladder", description="Ranking: best streak, winrate, played", color=0x00b4d4)
+        embed = discord.Embed(title="Ladder", description="Ranking: best streak, winrate, played, wilson score", color=0x00b4d4)
         for rank in ranking:
             winrate = (rank['won']*100)//rank['played'] if rank["played"] else 0
-            embed.add_field(name=rank['name'], value=f"{rank['best_streak']} | {winrate}% | {rank['played']}", inline=False)
+            embed.add_field(name=rank['name'], value=f"{rank['best_streak']} | {winrate}% | {rank['played'] } | {rank['wilson']}", inline=False)
         await ctx.send(embed=embed)
 
     @commands.command("Skip")
