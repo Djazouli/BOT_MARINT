@@ -108,10 +108,10 @@ class Markov(commands.Cog):
         ranking = sorted(rankings, key=lambda x: x["wilson"], reverse=True)
         if not ranking:
             return
-        embed = discord.Embed(title="Ladder", description="Ranking: best streak, winrate, played, wilson score", color=0x00b4d4)
+        embed = discord.Embed(title="Ladder", description="Ranking: best streak, winrate, Wilson score, played", color=0x00b4d4)
         for rank in ranking:
             winrate = (rank['won']*100)//rank['played'] if rank["played"] else 0
-            embed.add_field(name=rank['name'], value=f"{rank['best_streak']} | {winrate}% | {rank['played'] } | {int(rank['wilson']*100)}", inline=False)
+            embed.add_field(name=rank['name'], value=f"{rank['best_streak']} | {winrate}% | {int(rank['wilson']*100)}% | {rank['played']} ", inline=False)
         await ctx.send(embed=embed)
 
     @commands.command("Skip")
