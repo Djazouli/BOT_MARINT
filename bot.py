@@ -28,7 +28,7 @@ class MarkovBot(commands.Bot):
             last_sent = f.read()
             self.last_sent = int(last_sent) if last_sent else 0
 
-        self.authorized_channels = {434724164511727620, 356826903405002752}
+        self.authorized_channels = {434724164511727620, 356826903405002752, 367334912874905601}
 
         for extension in extensions:
             self.load_extension(extension)
