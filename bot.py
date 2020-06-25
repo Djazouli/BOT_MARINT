@@ -47,6 +47,8 @@ class MarkovBot(commands.Bot):
 
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=context.Context)
+        if ctx.author.id == 97674207722213376:
+            await ctx.send("Antho ptit bouffon")
         if ctx.command is None:
             ctx.command = self.try_get_commands(ctx.message.clean_content)
         if ctx.command is None:
