@@ -7,7 +7,7 @@ from databases.databases import save_markov_chains, load_markov_chains
 class MarkovChainer(object):
     def __init__(self, order):
         self.order = order
-        self.beginnings = []
+        self.beginnings = set()
         self.freq = {}
 
     # pass a string with a terminator to the function to add it to the markov lists.
@@ -17,7 +17,7 @@ class MarkovChainer(object):
         buf = []
         if len(words) > self.order:
             words.append(terminator)
-            self.beginnings.append(words[0:self.order])
+            self.beginnings.add(tuple(words[0:self.order]))
         else:
             pass
 
@@ -26,9 +26,9 @@ class MarkovChainer(object):
             if len(buf) == self.order + 1:
                 mykey = (buf[0], buf[-2])
                 if mykey in self.freq:
-                    self.freq[mykey].append(buf[-1])
+                    self.freq[mykey].add(buf[-1])
                 else:
-                    self.freq[mykey] = [buf[-1]]
+                    self.freq[mykey] = {buf[-1]}
                 buf.pop(0)
             else:
                 continue
@@ -47,10 +47,37 @@ class MarkovChainer(object):
                 else:
                     sentence = piece
 
-    # Generate the goofy sentences that become your tweet.
+
+    def is_possible_sentence(self, sentence: str):
+        sentence = sentence.split(' ')
+        beginning = tuple(sentence[:2])
+        if beginning not in self.beginnings:
+            return False
+
+        for i in range(len(sentence) - 2):
+            current_words = (sentence[i], sentence[i+1])
+            if current_words not in self.freq:
+                return False
+            if sentence[i+2] not in self.freq[current_words]:
+                return False
+
+        return True
+
+    def generate_unique_sentence(self, chains, count=0):
+        sentence = self.generate_sentence()
+        if count > 5:
+            # Avoid infinite looping
+            return sentence
+        for chain in chains.values():
+            if chain != self and chain.is_possible_sentence(sentence):
+                print(f"found replica for {sentence}")
+                return self.generate_unique_sentence(chains, count=count+1)
+        return sentence
+
+
     def generate_sentence(self):
-        res = random.choice(self.beginnings)
-        res = res[:]
+        res = random.choice(tuple(self.beginnings))
+        res = list(res)
         if len(res) == self.order:
             nw = True
             while nw is not None:
@@ -76,8 +103,8 @@ class MarkovChainer(object):
 
     def next_word_for(self, words):
         try:
-            arr = self.freq[words]
-            next_words = random.choice(arr)
+            possibilities = self.freq[words]
+            next_words = random.choice(tuple(possibilities))
             return next_words
         except Exception:
             return None
@@ -103,10 +130,6 @@ def feed_marchov_chains(markov_chain):
         #if not re.search('([\.\!\?\"\']$)', status):
             #status += "."
         markov_chain.add_sentence(status, ".")
-    print(f"Markov chain order {markov_chain.order}")
-    for x in range(0, 10):
-        ebook_status = markov_chain.generate_sentence()
-        print(ebook_status)
 
 def generate_markov_chains():
     markov_chains = load_markov_chains()
@@ -136,6 +159,4 @@ def generate_markov_chains():
             markov_chain.add_sentence(message)
         markov_chains[user_name] = markov_chain
     save_markov_chains(markov_chains)
-
-
     return markov_chains

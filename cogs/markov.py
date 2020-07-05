@@ -1,10 +1,7 @@
 from random import choice
-from time import time
-from pathlib import Path
 from math import sqrt
 import discord
 from discord.ext import commands
-from tinydb import Query
 from databases.databases import get_ranking_db
 
 
@@ -42,9 +39,9 @@ class Markov(commands.Cog):
         if not name or name not in self.bot.markov_chains:
             name = choice(list(self.bot.markov_chains.keys()))
         markov_chain = self.bot.markov_chains.get(name)
-        sentence = markov_chain.generate_sentence()
+        sentence = markov_chain.generate_unique_sentence(self.bot.markov_chains)
         if len(sentence.split()) < 5:
-            sentence += f"\n{markov_chain.generate_sentence()}"
+            sentence += f"\n{markov_chain.generate_unique_sentence(self.bot.markov_chains)}"
         return sentence, name
 
     @commands.command("Guess")
