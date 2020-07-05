@@ -2,15 +2,21 @@ from tinydb import TinyDB
 import os
 import pickle
 
-db_messages = TinyDB(os.path.join("databases", "db_message.json"))
-db_quotes = TinyDB(os.path.join("databases", "quotes.json"))
+db_messages = None
+db_quotes = None
 db_ranking = TinyDB(os.path.join("databases", "ranking.json"))
 markov_path = os.path.join("databases", "markov.pk")
 
 def get_quotes_db():
+    global db_quotes
+    if db_quotes is None:
+        db_quotes = TinyDB(os.path.join("databases", "quotes.json"))
     return db_quotes
 
 def get_messages_db():
+    global db_messages
+    if db_messages is None:
+        db_messages = TinyDB(os.path.join("databases", "quotes.json"))
     return db_messages
 
 def get_ranking_db():
