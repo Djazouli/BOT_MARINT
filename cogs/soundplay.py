@@ -36,11 +36,19 @@ class Soundplay(commands.Cog):
             if vc.guild == ctx.channel.guild:
                 voice = vc
                 break
-        if voice and voice.is_connected():
-            await voice.move_to(channel)
+        if voice:
+            if voice.channel == channel:
+                return voice
+            else:
+                try:
+                    await voice.disconnect(force=True)
+                except:
+                    pass
+                voice = await channel.connect()
+                return voice
         else:
             voice = await channel.connect()
-        return voice
+            return voice
 
     @commands.command(pass_context=True, name="m!t")
     async def playsound(self, ctx, tag):
