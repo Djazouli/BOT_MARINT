@@ -11,6 +11,7 @@ db = TinyDB("db.json")
 extensions = (
     'cogs.quotes',
     'cogs.markov',
+    'cogs.soundplay',
 )
 
 class MarkovBot(commands.Bot):
@@ -65,7 +66,7 @@ class MarkovBot(commands.Bot):
         return None
 
     async def on_message(self, message):
-        if message.author.bot or message.channel.id not in self.authorized_channels:
+        if message.author.bot or (self.authorized_channels and message.channel.id not in self.authorized_channels):
             return
         await self.process_commands(message)
 

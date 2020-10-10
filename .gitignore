@@ -1,5 +1,6 @@
 venv
 images
+sounds
 db_save
 .idea
 run.sh
