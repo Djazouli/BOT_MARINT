@@ -1,5 +1,6 @@
 import asyncio
 import os
+import shutil
 
 import discord
 import youtube_dl
@@ -65,6 +66,9 @@ class Soundplay(commands.Cog):
             return
 
         voice = await self.join(ctx)
+        if voice.socket is None:
+            await ctx.send(f"Could not connect to {ctx.message.author.voice.channel}")
+            return
         if voice.is_playing():
             voice.source = discord.FFmpegPCMAudio("sounds/"+matched_file)
         else:
@@ -82,6 +86,22 @@ class Soundplay(commands.Cog):
             )
         # await voice.disconnect()
 
+    @commands.command(pass_context=True, name="m!remove")
+    async def removetag(self, ctx, tag):
+        """A la poubelle vitality"""
+        matched_file = None
+
+        # find corresponding file
+        for file in os.listdir('sounds'):
+            if file.split('.')[0] == tag:
+                matched_file = file
+                break
+        if matched_file is None:
+            await ctx.send(f'Tag {tag} not found')
+            return
+
+        os.remove(os.path.join('sounds', matched_file))
+        await ctx.send(f'Tag {tag} removed')
 
     @commands.command(pass_context=True, name="m!stc")
     async def createsound(self, ctx, tag, url):
